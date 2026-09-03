@@ -1,0 +1,1704 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduRehber - Akıllı Koçluk, TYT/AYT/LGS Geri Sayım, MEB Kaynakları & Ders Programı</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              900: '#312e81',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- React 18 & ReactDOM via CDN -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  
+  <!-- Babel for In-Browser JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 antialiased min-h-screen">
+  <div id="root"></div>
+
+  <!-- React Web Application Script -->
+  <script type="text/babel">
+    const { useState, useEffect, useMemo } = React;
+
+    // ==================== 1. SABİTLER VE VERİLER ====================
+    const EXAM_DATA = {
+      TYT: {
+        code: 'TYT',
+        displayName: 'TYT (Temel Yeterlilik Testi)',
+        subtitle: 'YKS 1. Oturum - Tüm Üniversite Adayları',
+        examDate: new Date('2026-06-20T10:15:00'),
+        totalQuestions: 120,
+        durationMinutes: 165,
+        targetAudience: '12. Sınıf & Mezun Adaylar',
+        milestones: [
+          { title: 'TYT Temel Konu Taraması', dateRange: 'Eylül - Kasım', description: 'Türkçe paragraf ve temel matematik kampının bitirilmesi', tag: 'Konu' },
+          { title: 'Branş Denemeleri Maratonu', dateRange: 'Aralık - Şubat', description: 'Haftalık 2 Türkçe ve 2 Matematik branş denemesi', tag: 'Hız' },
+          { title: '165 Dk Zaman Yönetimi & Kondisyon', dateRange: 'Mart - Nisan', description: 'Gerçek sınav saati provası (10:15 - 13:00)', tag: 'Kondisyon' },
+          { title: 'ÖSYM Çıkmış Sorular & Son Rötuş', dateRange: 'Mayıs - Haziran', description: 'Son 7 yılın tüm çıkmış sorularının analizi', tag: 'Zirve' }
+        ]
+      },
+      AYT: {
+        code: 'AYT',
+        displayName: 'AYT (Alan Yeterlilik Testi)',
+        subtitle: 'YKS 2. Oturum - Lisans Programı Hedefleyenler',
+        examDate: new Date('2026-06-21T10:15:00'),
+        totalQuestions: 160,
+        durationMinutes: 180,
+        targetAudience: 'Sayısal, EA ve Sözel Alan Öğrencileri',
+        milestones: [
+          { title: '11. & 12. Sınıf Derin Konu Hakimiyeti', dateRange: 'Ekim - Ocak', description: 'Limit, Türev, İntegral, Organik Kimya, Edebiyat derinliği', tag: 'Kazanım' },
+          { title: 'Alan Odaklı Soru Bankası Taraması', dateRange: 'Şubat - Mart', description: 'Konu başı en az 300 ileri düzey yeni nesil soru', tag: 'Pekiştirme' },
+          { title: 'AYT Seri Genel Deneme Kampı', dateRange: 'Nisan - Mayıs', description: 'Haftada 3 tam kapsamlı AYT denemesi', tag: 'Deneme' },
+          { title: 'Formül ve Bilgi Kartı Tekrarları', dateRange: '1 - 19 Haziran', description: 'Hafıza teknikleri ve formül tekrarları', tag: 'Hafıza' }
+        ]
+      },
+      LGS: {
+        code: 'LGS',
+        displayName: 'LGS (Liselere Geçiş Sistemi)',
+        subtitle: '8. Sınıf - Nitelikli Fen ve Anadolu Liseleri',
+        examDate: new Date('2026-06-07T09:30:00'),
+        totalQuestions: 90,
+        durationMinutes: 155,
+        targetAudience: '8. Sınıf Öğrencileri',
+        milestones: [
+          { title: '1. Dönem MEB Kazanımları Tamamlama', dateRange: 'Ekim - Aralık', description: 'Tüm derslerin birinci dönem ünitelerinin pekiştirilmesi', tag: 'Konu' },
+          { title: 'MEB Aylık Örnek Sorular Çözümü', dateRange: 'Her Ay Düzenli', description: 'ÖDSGM örnek sorularının titiz analizi', tag: 'MEB Örnek' },
+          { title: 'Sayısal Mantık & Yeni Nesil Soru Kampı', dateRange: 'Şubat - Nisan', description: 'Görsel yorumlama ve grafik okuma becerileri', tag: 'Mantık' },
+          { title: 'Süre & Hata Analizi Maratonu', dateRange: 'Mayıs - Haziran', description: 'İki oturumlu (Sözel 75 dk + Sayısal 80 dk) denemeler', tag: 'Sınav Provasi' }
+        ]
+      },
+      YDT: {
+        code: 'YDT',
+        displayName: 'YDT (Yabancı Dil Testi)',
+        subtitle: 'YKS 3. Oturum - Dil Puanıyla Tercih Yapacaklar',
+        examDate: new Date('2026-06-21T15:45:00'),
+        totalQuestions: 80,
+        durationMinutes: 120,
+        targetAudience: 'İngilizce / Dil Öğrencileri',
+        milestones: [
+          { title: 'İleri Seviye Kelime & Phrasal Verb', dateRange: 'Eylül - Ocak', description: 'Günde 30 akademik kelime ve okuma parçaları', tag: 'Kelime' },
+          { title: 'Gramer ve Çeviri Teknikleri', dateRange: 'Şubat - Mart', description: 'Cümle tamamlama ve paragraf pratikleri', tag: 'Gramer' },
+          { title: '80 Soruluk Hız Denemeleri', dateRange: 'Nisan - Mayıs', description: '120 dakikalık tam sınav provaları', tag: 'Deneme' },
+          { title: 'Son Yılların YDT Soruları', dateRange: 'Haziran', description: 'ÖSYM dil testleri kalıp analizleri', tag: 'Final' }
+        ]
+      }
+    };
+
+    // MEB & OGM Resmi Portalları ve Kaynak Havuzu
+    const INITIAL_RESOURCES = [
+      {
+        id: 'res_meb_1',
+        title: 'OGM Materyal - Soru Bankası & YKS Deneme Portali',
+        category: 'MEB & OGM Materyal',
+        author: 'MEB Ortaöğretim Genel Müdürlüğü',
+        downloads: 14250,
+        description: 'Milli Eğitim Bakanlığı resmi ders kitapları, konu özetleri, etkileşimli deneyler, 3D modeller ve YKS mini denemeleri.',
+        urlOrUri: 'https://ogmmateryal.eba.gov.tr',
+        targetField: 'GENEL',
+        fileSizeOrType: 'Resmi MEB Portali',
+        isOfficialMeb: true,
+        icon: '🏛️'
+      },
+      {
+        id: 'res_meb_2',
+        title: 'EBA - Eğitim Bilişim Ağı Dijital Ders Kütüphanesi',
+        category: 'MEB & OGM Materyal',
+        author: 'Milli Eğitim Bakanlığı',
+        downloads: 28400,
+        description: 'Tüm sınıf kademeleri için MEB onaylı video ders anlatımları, interaktif alıştırmalar ve canlı ders arşivi.',
+        urlOrUri: 'https://www.eba.gov.tr',
+        targetField: 'GENEL',
+        fileSizeOrType: 'Resmi MEB Portali',
+        isOfficialMeb: true,
+        icon: '📚'
+      },
+      {
+        id: 'res_meb_3',
+        title: 'MEB ÖDSGM - Kazanım Kavrama & Değerlendirme Testleri',
+        category: 'MEB & OGM Materyal',
+        author: 'Ölçme, Değerlendirme ve Sınav Hizmetleri GM',
+        downloads: 19800,
+        description: '9, 10, 11, 12. Sınıf ve Mezun grupları için MEB resmi kazanım testleri PDF arşivi ve beceri temelli sorular.',
+        urlOrUri: 'https://odsgm.meb.gov.tr/kurslar',
+        targetField: 'SAYISAL / EA / SÖZEL',
+        fileSizeOrType: 'Resmi MEB Soru Havuzu',
+        isOfficialMeb: true,
+        icon: '🎯'
+      },
+      {
+        id: 'res_meb_4',
+        title: 'EBA Akademik Destek - Akıllı YKS Koçluk Sistemi',
+        category: 'MEB & OGM Materyal',
+        author: 'MEB Akademik Destek Ekibi',
+        downloads: 11300,
+        description: '11 ve 12. sınıflar için hedefe göre yapay zeka ile eksik konu analizi ve kişiye özel YKS deneme motoru.',
+        urlOrUri: 'https://akademikdestek.eba.gov.tr',
+        targetField: 'YKS (SAY/EA/SÖZ)',
+        fileSizeOrType: 'Akıllı YKS Portali',
+        isOfficialMeb: true,
+        icon: '⚡'
+      },
+      {
+        id: 'res_meb_5',
+        title: 'ÖSYM - Son 10 Yıl YKS (TYT-AYT-YDT) Çıkmış Sorular',
+        category: 'ÖSYM Resmi Arşivi',
+        author: 'ÖSYM Resmi Portali',
+        downloads: 32100,
+        description: 'ÖSYM resmi portalında yayınlanan tüm geçmiş yıl TYT, AYT ve YDT soru kitapçıkları ve ayrıntılı cevap anahtarları.',
+        urlOrUri: 'https://www.osym.gov.tr/TR,15104/yks-cikmis-sorular.html',
+        targetField: 'GENEL',
+        fileSizeOrType: 'ÖSYM Resmi Arşivi',
+        isOfficialMeb: true,
+        icon: '📝'
+      },
+      {
+        id: 'res_meb_6',
+        title: 'MEB Yardımcı Kaynaklar Destek Paketi & Fasiküller',
+        category: 'MEB & OGM Materyal',
+        author: 'Milli Eğitim Bakanlığı',
+        downloads: 8900,
+        description: 'Çalışma fasikülleri, tekrar testleri ve yeni nesil soru bankalarını içeren ücretsiz MEB dijital destek paketi.',
+        urlOrUri: 'https://yardimcikaynaklar.meb.gov.tr',
+        targetField: 'GENEL / LGS',
+        fileSizeOrType: 'MEB Dijital Paket',
+        isOfficialMeb: true,
+        icon: '📦'
+      },
+      {
+        id: 'res_custom_1',
+        title: 'TYT Matematik 30 Günlük Problem Kampı Dokümanı',
+        category: 'Ders Notu & Kamp',
+        author: 'Koç Fatih Erzik',
+        downloads: 1840,
+        description: 'Adım adım yeni nesil denklem kurma, grafik okuma ve yüzde-kar-zarar stratejileri rehberi.',
+        urlOrUri: 'https://ogmmateryal.eba.gov.tr',
+        targetField: 'SAYISAL / EA',
+        fileSizeOrType: 'PDF (4.2 MB)',
+        isOfficialMeb: false,
+        icon: '💡'
+      },
+      {
+        id: 'res_custom_2',
+        title: 'Haftalık Yanlış Defteri & Hata Analiz Şablonu',
+        category: 'Rehberlik & Takip',
+        author: 'EduRehber Mentor Ekibi',
+        downloads: 3420,
+        description: 'Denemelerde yapılan hataları sınıflandırma ve 14 gün sonra tekrar çözme metodolojisi.',
+        urlOrUri: 'https://ogmmateryal.eba.gov.tr',
+        targetField: 'GENEL',
+        fileSizeOrType: 'PDF (1.8 MB)',
+        isOfficialMeb: false,
+        icon: '📊'
+      }
+    ];
+
+    // Hazır Branş Ders Programları
+    const READY_CURRICULA = [
+      {
+        id: 'sayisal_yks',
+        title: 'YKS Sayısal (SAY) Derece Programı',
+        field: 'SAYISAL',
+        subtitle: 'Tıp & Mühendislik Hedefli Haftalık Yoğun Kamp',
+        badge: 'Haftalık 33.5 Saat • 980 Soru',
+        weeklyHours: 33.5,
+        weeklyQuestions: 980,
+        description: 'AYT Matematik ve Fen ağırlıklı, günlük paragraf ve geometri rutinleri ile desteklenmiş, hafta sonu çift denemeli elit program.',
+        tasks: [
+          { day: 1, subject: 'AYT Matematik', topic: 'Türev & İntegral Uygulamaları', duration: 90, targetQuestions: 45, type: 'Konu & Soru' },
+          { day: 1, subject: 'Fizik', topic: 'Elektrik ve Manyetizma Manyetik Alan', duration: 60, targetQuestions: 30, type: 'Soru Çözümü' },
+          { day: 1, subject: 'Türkçe', topic: 'TYT Paragraf Rutini & Hız Analizi', duration: 35, targetQuestions: 25, type: 'Rutin' },
+          { day: 2, subject: 'Kimya', topic: 'Modern Atom Teorisi & Sıvı Çözeltiler', duration: 60, targetQuestions: 35, type: 'Konu & Soru' },
+          { day: 2, subject: 'Biyoloji', topic: 'Hücre Bölünmeleri & Kalıtım Genetik', duration: 60, targetQuestions: 30, type: 'Konu & Soru' },
+          { day: 2, subject: 'Geometri', topic: 'Üçgende Açılar & Özel Üçgenler', duration: 60, targetQuestions: 30, type: 'Rutin Geometri' },
+          { day: 3, subject: 'AYT Matematik', topic: 'Polinomlar & İkinci Dereceden Denklemler', duration: 90, targetQuestions: 45, type: 'Konu & Soru' },
+          { day: 3, subject: 'Fizik', topic: 'Dalga Mekaniği & Optik Kırılma', duration: 60, targetQuestions: 30, type: 'Soru Çözümü' },
+          { day: 4, subject: 'Kimya', topic: 'Gazlar & Kimyasal Denge', duration: 60, targetQuestions: 35, type: 'Konu & Soru' },
+          { day: 4, subject: 'Biyoloji', topic: 'İnsan Fizyolojisi & Sinir Sistemi', duration: 60, targetQuestions: 30, type: 'Konu & Soru' },
+          { day: 5, subject: 'TYT Matematik', topic: 'Problemler Kampı & Sayısal Mantık', duration: 75, targetQuestions: 40, type: 'Problem Kampı' },
+          { day: 6, subject: 'Genel Deneme', topic: '165 Dk Süreli TYT Tam Deneme Sınavı', duration: 165, targetQuestions: 120, type: 'Deneme' },
+          { day: 7, subject: 'AYT Deneme', topic: 'AYT Matematik-Fen Alan Denemesi (80 Soru)', duration: 180, targetQuestions: 80, type: 'Deneme' }
+        ]
+      },
+      {
+        id: 'esitagirlik_yks',
+        title: 'YKS Eşit Ağırlık (EA) Başarı Programı',
+        field: 'EŞİT AĞIRLIK',
+        subtitle: 'Hukuk, İktisat & Yönetim Hedefli Denge Programı',
+        badge: 'Haftalık 31 Saat • 920 Soru',
+        weeklyHours: 31.0,
+        weeklyQuestions: 920,
+        description: 'Matematik ve Türk Dili-Edebiyatı omurgası üzerinde, Tarih-1 ve Coğrafya-1 destekli, hafıza kartları ve soru bankası taraması.',
+        tasks: [
+          { day: 1, subject: 'TYT Matematik', topic: 'Problemler & Denklem Kurma Hız Kampı', duration: 90, targetQuestions: 45, type: 'Problem Kampı' },
+          { day: 1, subject: 'Edebiyat', topic: 'Divan Edebiyatı Nazım Şekilleri & Şairler', duration: 75, targetQuestions: 40, type: 'Konu & Hafıza' },
+          { day: 1, subject: 'Türkçe', topic: 'Paragraf Hız Rutini (25 Soru - 28 Dk)', duration: 35, targetQuestions: 25, type: 'Rutin' },
+          { day: 2, subject: 'Tarih-1', topic: 'İlk ve Orta Çağlarda Türk Dünyası', duration: 60, targetQuestions: 35, type: 'Konu & Soru' },
+          { day: 2, subject: 'Coğrafya-1', topic: 'İklim Elemanları, Yer Şekilleri ve Harita', duration: 60, targetQuestions: 30, type: 'Soru Çözümü' },
+          { day: 3, subject: 'AYT Matematik', topic: 'Logaritma, Diziler & Trigonometri', duration: 90, targetQuestions: 45, type: 'Konu & Soru' },
+          { day: 4, subject: 'Edebiyat', topic: 'Tanzimat & Servet-i Fünun Dönemi', duration: 75, targetQuestions: 40, type: 'Konu & Soru' },
+          { day: 5, subject: 'AYT Matematik', topic: 'Limit & Türev Giriş', duration: 90, targetQuestions: 45, type: 'Konu & Soru' },
+          { day: 6, subject: 'Genel Deneme', topic: '165 Dk Süreli TYT Tam Deneme Sınavı', duration: 165, targetQuestions: 120, type: 'Deneme' },
+          { day: 7, subject: 'AYT EA Deneme', topic: 'Matematik + Edebiyat-Sosyal Denemesi', duration: 180, targetQuestions: 80, type: 'Deneme' }
+        ]
+      },
+      {
+        id: 'lgs_derece',
+        title: 'LGS 8. Sınıf Fen Lisesi Hedef Programı',
+        field: 'LGS',
+        subtitle: 'Yeni Nesil Sayısal Mantık & Paragraf Maratonu',
+        badge: 'Haftalık 24 Saat • 650 Soru',
+        weeklyHours: 24.0,
+        weeklyQuestions: 650,
+        description: 'MEB örnek soruları, beceri temelli sorular ve haftalık deneme analizleri odaklı 8. sınıf tam hazırlık planı.',
+        tasks: [
+          { day: 1, subject: 'Matematik', topic: 'Çarpanlar ve Katlar & Üslü İfadeler', duration: 60, targetQuestions: 30, type: 'Yeni Nesil' },
+          { day: 1, subject: 'Türkçe', topic: 'Paragrafta Anlam & Sözel Mantık', duration: 45, targetQuestions: 25, type: 'Soru Çözümü' },
+          { day: 2, subject: 'Fen Bilimleri', topic: 'Mevsimler ve İklim & DNA ve Genetik Kod', duration: 60, targetQuestions: 30, type: 'Konu & Soru' },
+          { day: 3, subject: 'İnkılap Tarihi', topic: 'Bir Kahraman Doğuyor & Milli Uyanış', duration: 40, targetQuestions: 25, type: 'Konu & Soru' },
+          { day: 3, subject: 'İngilizce', topic: 'Friendship & Teen Life Vocabulary', duration: 40, targetQuestions: 25, type: 'Kelime & Soru' },
+          { day: 4, subject: 'Matematik', topic: 'Kareköklü İfadeler & Veri Analizi', duration: 60, targetQuestions: 30, type: 'Yeni Nesil' },
+          { day: 5, subject: 'Din Kültürü', topic: 'Kader İnancı & Zekat-Sadaka', duration: 40, targetQuestions: 20, type: 'Soru Çözümü' },
+          { day: 6, subject: 'LGS Deneme', topic: 'Sözel (75 Dk) + Sayısal (80 Dk) Tam Deneme', duration: 155, targetQuestions: 90, type: 'Deneme' },
+          { day: 7, subject: 'Hata Analizi', topic: 'MEB Örnek Sorular & Deneme Yanlışları Tekrarı', duration: 60, targetQuestions: 20, type: 'Analiz' }
+        ]
+      }
+    ];
+
+    const AI_MOTIVATION_QUOTES = [
+      {
+        title: 'Günün İradesi: Küçük Adımlar, Büyük Zirveler',
+        content: 'Sınava hazırlık süreci 100 metrelik bir sprint değil, kararlılıkla koşulan bir maratondur. Bugün çözeceğin fazladan 25 soru veya tamamlayacağın 1 odaklanma etütü, haziran ayındaki hayallerinin teminatıdır. İnan, odaklan ve vazgeçme!',
+        category: 'Disiplin & Odaklanma'
+      },
+      {
+        title: 'Denemelerdeki Hatalar En Dürüst Pusulandır',
+        content: 'Denemelerde yaptığın yanlışlar senin moralini bozmak için değil, sınav gününde eksiksiz olmanı sağlamak için birer fırsattır. Yanlış yaptığın her sorunun çözümünü öğrenmeden günü tamamlama. Başarı, hatalarından ders çıkaranındır.',
+        category: 'Sınav Stratejisi'
+      },
+      {
+        title: 'Zihinsel Odaklanma ve Masa Başında Disiplin',
+        content: 'Masanın başına oturduğunda telefonunu ve dikkat dağıtıcıları geride bırak. 25 dakikalık tam odaklanmış bir çalışma, yarım yamalak geçen 2 saatten çok daha değerlidir. Zihnini hedefine kilitle.',
+        category: 'Odaklanma'
+      },
+      {
+        title: 'Son Viraj Marifeti: Sabır ve Kararlılık',
+        content: 'Herkesin yorulduğu ve tempoyu düşürdüğü anda çalışanlar, sıralamada binlerce kişinin önüne geçer. Yorgun hissettiğinde hedeflerini, kazanacağın üniversite amfisini veya liseni hayal et ve bir soru daha çöz!',
+        category: 'Pes Etmeme'
+      },
+      {
+        title: 'TYT & LGS Hız Sırrı: Süre Yönetimi ve Soğukkanlılık',
+        content: 'Sınav sadece bilgiyi değil, baskı anında süreyi nasıl yönettiğini de ölçer. Turlama tekniğini benimse, takıldığın soruyla inatlaşma ve ritmini koru. Sen planına sadık kalırsan sınav senin istediğin gibi sonuçlanır.',
+        category: 'Süre Yönetimi'
+      }
+    ];
+
+    // ==================== 2. ANA UYGULAMA BİLEŞENİ ====================
+    function App() {
+      // Aktif Sekme: 'dashboard' | 'schedule' | 'meb' | 'exams'
+      const [currentTab, setCurrentTab] = useState('dashboard');
+      const [userRole, setUserRole] = useState(() => localStorage.getItem('edurehber_role') || 'coach');
+      const [selectedExam, setSelectedExam] = useState('TYT');
+      const [now, setNow] = useState(Date.now());
+
+      // Ders Programı Sekmesi İçin State
+      const [selectedDay, setSelectedDay] = useState(1); // 1: Pzt ... 7: Paz
+      const [scheduleSubTab, setScheduleSubTab] = useState('weekly'); // 'weekly' | 'curricula'
+
+      // MEB Kaynakları Sekmesi İçin State
+      const [resourceSearch, setResourceSearch] = useState('');
+      const [resourceCategoryFilter, setResourceCategoryFilter] = useState('Tümü');
+      const [resources, setResources] = useState(() => {
+        const saved = localStorage.getItem('edurehber_resources');
+        return saved ? JSON.parse(saved) : INITIAL_RESOURCES;
+      });
+
+      // Modallar
+      const [showMilestonesModal, setShowMilestonesModal] = useState(false);
+      const [showEditMotivationModal, setShowEditMotivationModal] = useState(false);
+      const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
+      const [showAddExamModal, setShowAddExamModal] = useState(false);
+      const [showAddTaskModal, setShowAddTaskModal] = useState(false);
+      const [showApplyCurriculumModal, setShowApplyCurriculumModal] = useState(null);
+
+      // Motivasyon Verisi (Local Persistence)
+      const [motivation, setMotivation] = useState(() => {
+        const saved = localStorage.getItem('edurehber_motivation');
+        return saved ? JSON.parse(saved) : {
+          id: 1,
+          dateString: 'Bugün • Rehberlik Köşesi',
+          title: 'Günün İradesi: Küçük Adımlar, Büyük Zirveler',
+          content: 'Sınava hazırlık süreci 100 metrelik bir sprint değil, kararlılıkla koşulan bir maratondur. Bugün çözeceğin fazladan 25 soru veya tamamlayacağın 1 odaklanma etütü, haziran ayındaki hayallerinin teminatıdır. İnan, odaklan ve vazgeçme!',
+          authorName: 'Koç Fatih Erzik',
+          authorRole: 'YKS & LGS Baş Danışmanı',
+          category: 'Disiplin & Odaklanma',
+          isAI: false,
+          likesCount: 64
+        };
+      });
+
+      useEffect(() => {
+        localStorage.setItem('edurehber_motivation', JSON.stringify(motivation));
+      }, [motivation]);
+
+      // E-posta Doğrulama Durumu (Gerçek Zamanlı 3 Dakika Sayacı)
+      const [userEmail, setUserEmail] = useState('fatiherzik72@gmail.com');
+      const [isEmailVerified, setIsEmailVerified] = useState(() => localStorage.getItem('edurehber_verified') === 'true');
+      const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
+      const [currentSentCode, setCurrentSentCode] = useState('');
+      const [expiresAt, setExpiresAt] = useState(0);
+      const [resendAllowedAt, setResendAllowedAt] = useState(0);
+      const [attemptsLeft, setAttemptsLeft] = useState(5);
+      const [verifyError, setVerifyError] = useState(null);
+      const [isVerifying, setIsVerifying] = useState(false);
+      const [refId, setRefId] = useState('');
+
+      // Deneme Netleri (Local Persistence)
+      const [exams, setExams] = useState(() => {
+        const saved = localStorage.getItem('edurehber_exams');
+        return saved ? JSON.parse(saved) : [
+          { id: '1', title: 'Özdebir Türkiye Geneli TYT-1', date: '2026-08-15', turkce: 34.5, matematik: 32.0, fen: 16.25, sosyal: 17.5, totalNet: 100.25 },
+          { id: '2', title: '3D Simülasyon TYT Deneme-2', date: '2026-08-25', turkce: 36.0, matematik: 35.5, fen: 17.0, sosyal: 18.0, totalNet: 106.5 }
+        ];
+      });
+
+      useEffect(() => {
+        localStorage.setItem('edurehber_exams', JSON.stringify(exams));
+      }, [exams]);
+
+      // Haftalık Çalışma Görevleri (Tüm Günler İçin)
+      const [tasks, setTasks] = useState(() => {
+        const saved = localStorage.getItem('edurehber_tasks');
+        return saved ? JSON.parse(saved) : [
+          { id: '1', day: 1, subject: 'TYT Matematik', topic: 'Problemler & Sayı Mantığı Hız Testi', duration: 60, targetQuestions: 40, completed: true, type: 'Problem Kampı' },
+          { id: '2', day: 1, subject: 'Fizik', topic: 'Optik & Dalgalar Konu Özeti ve Soru Çözümü', duration: 50, targetQuestions: 30, completed: true, type: 'Soru Çözümü' },
+          { id: '3', day: 1, subject: 'Türkçe', topic: 'Paragraf Hız Denemesi (25 Soru - 28 dk)', duration: 35, targetQuestions: 25, completed: false, type: 'Rutin' },
+          { day: 2, id: '4', subject: 'Geometri', topic: 'Üçgende Alan & Benzerlik Soru Çözümü', duration: 60, targetQuestions: 35, completed: false, type: 'Rutin Geometri' },
+          { day: 2, id: '5', subject: 'Kimya', topic: 'Gazlar & Sıvı Çözeltiler AYT Tekrarı', duration: 45, targetQuestions: 30, completed: false, type: 'Konu & Soru' },
+          { day: 3, id: '6', subject: 'AYT Matematik', topic: 'Türev Alma Kuralları ve Grafik Yorumu', duration: 90, targetQuestions: 45, completed: false, type: 'Konu & Soru' },
+          { day: 4, id: '7', subject: 'Biyoloji', topic: 'İnsan Fizyolojisi & Sinir Sistemi', duration: 60, targetQuestions: 30, completed: false, type: 'Konu & Soru' },
+          { day: 5, id: '8', subject: 'Rehberlik & Analiz', topic: 'Haftalık Yanlış Defteri Kontrolü & Koç Değerlendirmesi', duration: 45, targetQuestions: 15, completed: false, type: 'Hata Analizi' },
+          { day: 6, id: '9', subject: 'Genel Deneme', topic: '165 Dk Süre Tutarak TYT Genel Deneme Sınavı', duration: 165, targetQuestions: 120, completed: false, type: 'Deneme' },
+          { day: 7, id: '10', subject: 'AYT Deneme', topic: 'AYT Alan Denemesi ve Detaylı Soru Çözümü', duration: 180, targetQuestions: 80, completed: false, type: 'Deneme' }
+        ];
+      });
+
+      useEffect(() => {
+        localStorage.setItem('edurehber_tasks', JSON.stringify(tasks));
+      }, [tasks]);
+
+      // Canlı Saat Ticker (1 Saniyede Bir Güncelle)
+      useEffect(() => {
+        const interval = setInterval(() => setNow(Date.now()), 1000);
+        return () => clearInterval(interval);
+      }, []);
+
+      // Sınav Geri Sayım Hesaplaması
+      const countdown = useMemo(() => {
+        const target = EXAM_DATA[selectedExam].examDate.getTime();
+        const diff = Math.max(0, target - now);
+
+        const seconds = Math.floor((diff / 1000) % 60);
+        const minutes = Math.floor((diff / (1000 * 60)) % 60);
+        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const weeks = Math.floor(days / 7);
+        const weekends = weeks * 2;
+
+        const totalDays = 280;
+        const progress = Math.min(100, Math.max(0, ((totalDays - days) / totalDays) * 100));
+
+        return { days, hours, minutes, seconds, weeks, weekends, progress };
+      }, [selectedExam, now]);
+
+      // E-posta Doğrulama Zamanlayıcıları
+      const validitySecondsLeft = Math.max(0, Math.floor((expiresAt - now) / 1000));
+      const resendSecondsLeft = Math.max(0, Math.floor((resendAllowedAt - now) / 1000));
+      const isCodeExpired = expiresAt > 0 && validitySecondsLeft <= 0;
+
+      // E-posta Kodu Gönderme
+      const handleSendVerificationCode = () => {
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        const cur = Date.now();
+        setCurrentSentCode(code);
+        setExpiresAt(cur + 180 * 1000); // 3 Dakika Gerçek Geçerlilik
+        setResendAllowedAt(cur + 60 * 1000); // 60 Saniye Bekleme
+        setAttemptsLeft(5);
+        setVerifyError(null);
+        setOtpDigits(['', '', '', '', '', '']);
+        setRefId('EDR-' + Math.floor(10000 + Math.random() * 90000));
+        setIsVerifyModalOpen(true);
+        console.log(`[EduRehber Güvenlik] E-posta: ${userEmail} için üretilen tek kullanımlık 6 haneli kod: ${code}`);
+      };
+
+      const handleOtpChange = (index, val) => {
+        if (!/^\d*$/.test(val)) return;
+        const nextDigits = [...otpDigits];
+        nextDigits[index] = val.slice(-1);
+        setOtpDigits(nextDigits);
+
+        if (val && index < 5) {
+          const nextInput = document.getElementById(`web-otp-${index + 1}`);
+          nextInput?.focus();
+        }
+      };
+
+      const handleOtpKeyDown = (index, e) => {
+        if (e.key === 'Backspace' && !otpDigits[index] && index > 0) {
+          const prevInput = document.getElementById(`web-otp-${index - 1}`);
+          prevInput?.focus();
+        }
+      };
+
+      const handleVerifySubmit = () => {
+        const entered = otpDigits.join('');
+        if (entered.length < 6) {
+          setVerifyError('Lütfen 6 haneli kodun tamamını giriniz.');
+          return;
+        }
+
+        if (isCodeExpired) {
+          setVerifyError('Doğrulama kodunun 3 dakikalık süresi doldu. Lütfen "Yeni Kod Gönder" butonuna basınız.');
+          return;
+        }
+
+        if (attemptsLeft <= 0) {
+          setVerifyError('Deneme hakkınız tükendi. Lütfen yeni kod isteyiniz.');
+          return;
+        }
+
+        setIsVerifying(true);
+        setVerifyError(null);
+
+        setTimeout(() => {
+          setIsVerifying(false);
+          if (entered === currentSentCode) {
+            setIsEmailVerified(true);
+            localStorage.setItem('edurehber_verified', 'true');
+            setIsVerifyModalOpen(false);
+          } else {
+            const nextAttempts = attemptsLeft - 1;
+            setAttemptsLeft(nextAttempts);
+            setVerifyError(
+              nextAttempts === 0
+                ? 'Hatalı kod! Tüm deneme haklarınız tükendi. Lütfen yeni bir kod isteyiniz.'
+                : `Girdiğiniz 6 haneli kod hatalıdır. Kalan deneme hakkınız: ${nextAttempts}`
+            );
+          }
+        }, 500);
+      };
+
+      const handleGenerateAIMotivation = () => {
+        const q = AI_MOTIVATION_QUOTES[Math.floor(Math.random() * AI_MOTIVATION_QUOTES.length)];
+        setMotivation({
+          ...motivation,
+          title: q.title,
+          content: q.content,
+          category: q.category,
+          authorName: 'EduRehber AI Mentörü',
+          authorRole: 'Yapay Zeka Destekli Baş Danışman',
+          isAI: true
+        });
+      };
+
+      // Hazır Programı Uygula
+      const handleApplyCurriculum = (curriculum) => {
+        const newTasks = curriculum.tasks.map((t, idx) => ({
+          id: `applied_${Date.now()}_${idx}`,
+          day: t.day,
+          subject: t.subject,
+          topic: t.topic,
+          duration: t.duration,
+          targetQuestions: t.targetQuestions,
+          completed: false,
+          type: t.type
+        }));
+        setTasks(newTasks);
+        setShowApplyCurriculumModal(null);
+        setScheduleSubTab('weekly');
+      };
+
+      // Filtrelenmiş MEB Kaynakları
+      const filteredResources = useMemo(() => {
+        return resources.filter((res) => {
+          const matchQuery = res.title.toLowerCase().includes(resourceSearch.toLowerCase()) ||
+            res.description.toLowerCase().includes(resourceSearch.toLowerCase()) ||
+            res.category.toLowerCase().includes(resourceSearch.toLowerCase());
+          const matchCat = resourceCategoryFilter === 'Tümü' || res.category === resourceCategoryFilter;
+          return matchQuery && matchCat;
+        });
+      }, [resources, resourceSearch, resourceCategoryFilter]);
+
+      const daysOfWeek = [
+        { num: 1, label: 'Pazartesi' },
+        { num: 2, label: 'Salı' },
+        { num: 3, label: 'Çarşamba' },
+        { num: 4, label: 'Perşembe' },
+        { num: 5, label: 'Cuma' },
+        { num: 6, label: 'Cumartesi' },
+        { num: 7, label: 'Pazar' }
+      ];
+
+      const currentDayTasks = tasks.filter((t) => t.day === selectedDay);
+
+      return (
+        <div className="min-h-screen flex flex-col bg-slate-50">
+          {/* ==================== ÜST BAŞLIK VE NAVİGASYON BAR ==================== */}
+          <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-200 px-4 lg:px-8 py-3 shadow-sm">
+            <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
+              {/* Logo ve Başlık */}
+              <div className="flex items-center justify-between w-full md:w-auto">
+                <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setCurrentTab('dashboard')}>
+                  <div className="w-10 h-10 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-md shadow-indigo-500/20 font-black text-xl">
+                    🎓
+                  </div>
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <h1 className="text-xl font-black tracking-tight text-slate-900">EduRehber</h1>
+                      <span className="bg-indigo-100 text-indigo-800 text-[11px] px-2 py-0.5 rounded-full font-bold">Tam Web Sürümü</span>
+                    </div>
+                    <p className="text-xs text-slate-500 font-medium">YKS, LGS, MEB Kaynakları & Ders Programı</p>
+                  </div>
+                </div>
+
+                {/* Mobil Doğrulama Butonu */}
+                <div className="md:hidden">
+                  <button
+                    onClick={handleSendVerificationCode}
+                    className={`text-[11px] font-bold px-2.5 py-1.5 rounded-lg border ${
+                      isEmailVerified ? 'bg-emerald-50 border-emerald-300 text-emerald-700' : 'bg-amber-50 border-amber-300 text-amber-700'
+                    }`}
+                  >
+                    {isEmailVerified ? '🛡️ Doğrulandı' : '⚠️ Doğrula'}
+                  </button>
+                </div>
+              </div>
+
+              {/* ANA SEKMELER (Menü Butonları) */}
+              <nav className="flex items-center bg-slate-100 p-1.5 rounded-2xl border border-slate-200 overflow-x-auto max-w-full">
+                <button
+                  onClick={() => setCurrentTab('dashboard')}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-xl transition shrink-0 ${
+                    currentTab === 'dashboard' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <span>📊</span>
+                  <span>Panel & Geri Sayım</span>
+                </button>
+
+                <button
+                  onClick={() => setCurrentTab('schedule')}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-xl transition shrink-0 ${
+                    currentTab === 'schedule' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <span>📋</span>
+                  <span>Ders Programı & Kamplar</span>
+                </button>
+
+                <button
+                  onClick={() => setCurrentTab('meb')}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-xl transition shrink-0 ${
+                    currentTab === 'meb' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <span>🏛️</span>
+                  <span>MEB & OGM Kaynakları</span>
+                  <span className="bg-indigo-600 text-white text-[10px] px-1.5 py-0.2 rounded-full font-black">6+</span>
+                </button>
+
+                <button
+                  onClick={() => setCurrentTab('exams')}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-xl transition shrink-0 ${
+                    currentTab === 'exams' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <span>📈</span>
+                  <span>Deneme Netleri</span>
+                </button>
+              </nav>
+
+              {/* Sağ Aksiyonlar: Doğrulama & Rol */}
+              <div className="hidden md:flex items-center space-x-3">
+                <button
+                  onClick={handleSendVerificationCode}
+                  className={`flex items-center space-x-2 text-xs font-bold px-3 py-1.5 rounded-xl border transition ${
+                    isEmailVerified
+                      ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+                      : 'bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100'
+                  }`}
+                >
+                  <span>{isEmailVerified ? '🛡️ E-Posta Doğrulandı' : '⚠️ E-Posta Doğrula'}</span>
+                </button>
+
+                <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-bold">
+                  <button
+                    onClick={() => {
+                      setUserRole('student');
+                      localStorage.setItem('edurehber_role', 'student');
+                    }}
+                    className={`px-2.5 py-1 rounded-lg transition ${
+                      userRole === 'student' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-600'
+                    }`}
+                  >
+                    Öğrenci
+                  </button>
+                  <button
+                    onClick={() => {
+                      setUserRole('coach');
+                      localStorage.setItem('edurehber_role', 'coach');
+                    }}
+                    className={`px-2.5 py-1 rounded-lg transition ${
+                      userRole === 'coach' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-600'
+                    }`}
+                  >
+                    Koç
+                  </button>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          {/* ==================== 3. ANA GÖVDE (SEKMELERE GÖRE) ==================== */}
+          <main className="max-w-7xl mx-auto px-4 lg:px-8 pt-6 pb-16 space-y-6 flex-1 w-full">
+            
+            {/* SEKMELER 1: DASHBOARD & GERİ SAYIM */}
+            {currentTab === 'dashboard' && (
+              <div className="space-y-6">
+                {/* Günün Motivasyon Yazısı Kartı */}
+                <section className="bg-gradient-to-br from-slate-900 via-indigo-950 to-blue-950 text-white rounded-3xl p-6 lg:p-8 shadow-xl relative overflow-hidden border border-indigo-800/40">
+                  <div className="relative z-10 flex flex-col md:flex-row md:items-start justify-between gap-6">
+                    <div className="space-y-3 max-w-3xl">
+                      <div className="flex flex-wrap items-center gap-2.5">
+                        <span className="bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider flex items-center gap-1.5">
+                          ✨ {motivation.category}
+                        </span>
+                        <span className="text-xs text-slate-400 font-medium">{motivation.dateString}</span>
+                      </div>
+
+                      <h2 className="text-2xl lg:text-3xl font-black tracking-tight text-white">{motivation.title}</h2>
+                      <p className="text-slate-200 text-sm lg:text-base leading-relaxed italic font-normal">
+                        “{motivation.content}”
+                      </p>
+
+                      <div className="pt-2 flex items-center space-x-3 text-xs text-slate-400 font-medium">
+                        <span className="text-indigo-400 font-bold">{motivation.authorName}</span>
+                        <span>•</span>
+                        <span>{motivation.authorRole}</span>
+                        {motivation.isAI && (
+                          <span className="bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded text-[10px] font-bold border border-purple-400/20">
+                            🤖 AI Mentör
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex md:flex-col items-center md:items-end gap-3 shrink-0">
+                      <button
+                        onClick={() => setMotivation({ ...motivation, likesCount: motivation.likesCount + 1 })}
+                        className="flex items-center space-x-2 bg-white/10 hover:bg-white/15 border border-white/10 px-4 py-2 rounded-xl text-xs font-bold text-white transition active:scale-95"
+                      >
+                        <span>❤️</span>
+                        <span>{motivation.likesCount} Beğeni</span>
+                      </button>
+
+                      {userRole === 'coach' ? (
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setShowEditMotivationModal(true)}
+                            className="bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-lg shadow-indigo-600/30"
+                          >
+                            ✏️ Yazıyı Düzenle
+                          </button>
+                          <button
+                            onClick={handleGenerateAIMotivation}
+                            className="bg-purple-600 hover:bg-purple-500 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-lg shadow-purple-600/30"
+                          >
+                            ✨ AI Yazsın
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={handleGenerateAIMotivation}
+                          className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-lg shadow-indigo-600/30"
+                        >
+                          ✨ AI'dan Yeni Söz İste
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </section>
+
+                {/* Sınav Canlı Geri Sayım Takvimi */}
+                <section className="bg-white rounded-3xl p-6 lg:p-8 shadow-sm border border-slate-200">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-100">
+                    <div>
+                      <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
+                        ⏱️ Canlı Sınav Geri Sayım Sayacı
+                      </h3>
+                      <p className="text-xs text-slate-500 font-medium">Saniyelik hassasiyetle hedefe kalan süre</p>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2">
+                      {['TYT', 'AYT', 'LGS', 'YDT'].map((exam) => (
+                        <button
+                          key={exam}
+                          onClick={() => setSelectedExam(exam)}
+                          className={`px-4 py-2 rounded-xl text-xs font-black transition ${
+                            selectedExam === exam
+                              ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
+                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                          }`}
+                        >
+                          {exam}
+                        </button>
+                      ))}
+
+                      <button
+                        onClick={() => setShowMilestonesModal(true)}
+                        className="text-xs font-bold text-indigo-600 hover:text-indigo-700 px-3 py-2 flex items-center gap-1"
+                      >
+                        <span>Yol Haritası & Takvim</span>
+                        <span>→</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Sınav Bilgisi */}
+                  <div className="py-3.5 px-4 bg-slate-50 rounded-2xl my-4 border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                    <span className="font-bold text-slate-800">{EXAM_DATA[selectedExam].displayName}</span>
+                    <div className="flex items-center gap-4 text-slate-500 font-medium">
+                      <span>📅 {EXAM_DATA[selectedExam].examDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                      <span>📝 {EXAM_DATA[selectedExam].totalQuestions} Soru</span>
+                      <span>⏱️ {EXAM_DATA[selectedExam].durationMinutes} Dk</span>
+                    </div>
+                  </div>
+
+                  {/* Sayaç Kutuları */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 py-3">
+                    <div className="bg-indigo-600 text-white rounded-2xl p-4 flex flex-col items-center justify-center shadow-lg shadow-indigo-600/20">
+                      <span className="text-3xl lg:text-4xl font-black">{String(countdown.days).padStart(2, '0')}</span>
+                      <span className="text-[11px] font-bold text-indigo-100 tracking-wider mt-1">GÜN</span>
+                    </div>
+
+                    <div className="bg-slate-100 text-slate-900 rounded-2xl p-4 flex flex-col items-center justify-center border border-slate-200">
+                      <span className="text-3xl lg:text-4xl font-black">{String(countdown.hours).padStart(2, '0')}</span>
+                      <span className="text-[11px] font-bold text-slate-500 tracking-wider mt-1">SAAT</span>
+                    </div>
+
+                    <div className="bg-slate-100 text-slate-900 rounded-2xl p-4 flex flex-col items-center justify-center border border-slate-200">
+                      <span className="text-3xl lg:text-4xl font-black">{String(countdown.minutes).padStart(2, '0')}</span>
+                      <span className="text-[11px] font-bold text-slate-500 tracking-wider mt-1">DAKİKA</span>
+                    </div>
+
+                    <div className="bg-slate-100 text-slate-900 rounded-2xl p-4 flex flex-col items-center justify-center border border-slate-200">
+                      <span className="text-3xl lg:text-4xl font-black text-indigo-600">{String(countdown.seconds).padStart(2, '0')}</span>
+                      <span className="text-[11px] font-bold text-slate-500 tracking-wider mt-1">SANİYE</span>
+                    </div>
+                  </div>
+
+                  {/* İlerleme Barı */}
+                  <div className="mt-4 space-y-2">
+                    <div className="flex justify-between text-xs font-semibold text-slate-600">
+                      <span>Dönem Başından Hazırlık İlerlemesi</span>
+                      <span className="text-indigo-600 font-bold">%{Math.round(countdown.progress)}</span>
+                    </div>
+                    <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-indigo-600 rounded-full transition-all duration-500"
+                        style={{ width: `${countdown.progress}%` }}
+                      />
+                    </div>
+                    <div className="flex justify-between text-xs text-slate-500 pt-1 font-medium">
+                      <span>Kalan Hafta: <strong className="text-slate-800">{countdown.weeks} Hafta</strong></span>
+                      <span className="text-emerald-600 font-bold">🎯 Kalan Deneme Hafta Sonu: {countdown.weekends}</span>
+                    </div>
+                  </div>
+                </section>
+
+                {/* Hızlı Özet Kartları: Ders Programı & MEB Kaynakları */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Bugünkü Çalışma Özeti */}
+                  <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
+                    <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+                      <div>
+                        <h4 className="text-base font-black text-slate-900">📋 Bugünkü Çalışma Özeti</h4>
+                        <p className="text-xs text-slate-500">Pazartesi günü hedefleri</p>
+                      </div>
+                      <button
+                        onClick={() => setCurrentTab('schedule')}
+                        className="text-xs font-bold text-indigo-600 hover:text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-xl"
+                      >
+                        Tüm Programı Gör →
+                      </button>
+                    </div>
+
+                    <div className="mt-4 space-y-2.5">
+                      {tasks.filter((t) => t.day === 1).map((t) => (
+                        <div key={t.id} className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-indigo-600">[{t.subject}]</span>
+                            <span className="font-medium text-slate-800">{t.topic}</span>
+                          </div>
+                          <span className="font-bold text-slate-500">{t.targetQuestions} Soru</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Öne Çıkan MEB Portalları */}
+                  <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
+                    <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+                      <div>
+                        <h4 className="text-base font-black text-slate-900">🏛️ MEB & OGM Hızlı Erişim</h4>
+                        <p className="text-xs text-slate-500">Resmi sınav portalları</p>
+                      </div>
+                      <button
+                        onClick={() => setCurrentTab('meb')}
+                        className="text-xs font-bold text-indigo-600 hover:text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-xl"
+                      >
+                        Tüm Kaynaklar →
+                      </button>
+                    </div>
+
+                    <div className="mt-4 space-y-2.5">
+                      {resources.slice(0, 3).map((r) => (
+                        <a
+                          key={r.id}
+                          href={r.urlOrUri}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="p-3 rounded-xl bg-slate-50 hover:bg-indigo-50/60 border border-slate-100 hover:border-indigo-200 flex items-center justify-between text-xs transition"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="text-base">{r.icon}</span>
+                            <span className="font-bold text-slate-800">{r.title}</span>
+                          </div>
+                          <span className="text-indigo-600 font-bold">Aç ↗</span>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* SEKMELER 2: DERS PROGRAMI & BRANŞ KAMPLARI */}
+            {currentTab === 'schedule' && (
+              <div className="space-y-6">
+                {/* Üst Sekme Seçimi: Haftalık Programım vs Hazır Kamplar */}
+                <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
+                      📅 Akıllı Ders Çalışma Programı
+                    </h2>
+                    <p className="text-xs text-slate-500">Haftanın her gününe özel ders görevleri ve hazır branş şablonları</p>
+                  </div>
+
+                  <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
+                    <button
+                      onClick={() => setScheduleSubTab('weekly')}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
+                        scheduleSubTab === 'weekly' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      🗓️ Aktif Haftalık Planım
+                    </button>
+                    <button
+                      onClick={() => setScheduleSubTab('curricula')}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
+                        scheduleSubTab === 'curricula' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      🚀 Hazır Branş Programları ({READY_CURRICULA.length})
+                    </button>
+                  </div>
+                </div>
+
+                {/* ALT SEÇENEK A: AKTİF HAFTALIK PLANIM */}
+                {scheduleSubTab === 'weekly' && (
+                  <div className="space-y-6">
+                    {/* Gün Seçici Butonları */}
+                    <div className="bg-white rounded-2xl p-3 shadow-sm border border-slate-200 flex items-center gap-2 overflow-x-auto">
+                      {daysOfWeek.map((d) => {
+                        const dayTaskCount = tasks.filter((t) => t.day === d.num).length;
+                        const dayCompletedCount = tasks.filter((t) => t.day === d.num && t.completed).length;
+                        return (
+                          <button
+                            key={d.num}
+                            onClick={() => setSelectedDay(d.num)}
+                            className={`flex-1 min-w-[120px] p-3 rounded-xl border text-center transition ${
+                              selectedDay === d.num
+                                ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-600/20'
+                                : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                            }`}
+                          >
+                            <span className="block text-xs font-bold">{d.label}</span>
+                            <span className={`text-[11px] block mt-0.5 ${selectedDay === d.num ? 'text-indigo-100' : 'text-slate-500'}`}>
+                              {dayCompletedCount}/{dayTaskCount} Görev
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Seçilen Günün Görevleri */}
+                    <div className="bg-white rounded-3xl p-6 lg:p-8 shadow-sm border border-slate-200">
+                      <div className="flex items-center justify-between pb-6 border-b border-slate-100">
+                        <div>
+                          <h3 className="text-lg font-black text-slate-900">
+                            {daysOfWeek.find((d) => d.num === selectedDay)?.label} Günü Çalışma Listesi
+                          </h3>
+                          <p className="text-xs text-slate-500">
+                            Tamamladığınız görevlerin yanındaki kutucuğa tıklayarak işaretleyiniz.
+                          </p>
+                        </div>
+
+                        <button
+                          onClick={() => setShowAddTaskModal(true)}
+                          className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-md shadow-indigo-600/20 flex items-center gap-1.5"
+                        >
+                          <span>+</span>
+                          <span>Yeni Görev Ekle</span>
+                        </button>
+                      </div>
+
+                      {currentDayTasks.length === 0 ? (
+                        <div className="py-12 text-center text-slate-400">
+                          <p className="text-sm font-medium">Bu gün için henüz bir çalışma görevi eklenmemiş.</p>
+                          <button
+                            onClick={() => setShowAddTaskModal(true)}
+                            className="mt-3 text-xs font-bold text-indigo-600 hover:underline"
+                          >
+                            İlk görevi eklemek için tıklayınız
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="mt-6 space-y-3">
+                          {currentDayTasks.map((task) => (
+                            <div
+                              key={task.id}
+                              onClick={() => {
+                                setTasks(tasks.map((t) => (t.id === task.id ? { ...t, completed: !t.completed } : t)));
+                              }}
+                              className={`p-4 rounded-2xl border transition cursor-pointer flex items-center justify-between ${
+                                task.completed
+                                  ? 'bg-slate-50/70 border-slate-200 opacity-60'
+                                  : 'bg-white border-slate-200 hover:border-indigo-300 shadow-sm'
+                              }`}
+                            >
+                              <div className="flex items-center space-x-3.5">
+                                <div
+                                  className={`w-7 h-7 rounded-full flex items-center justify-center border text-xs font-bold transition ${
+                                    task.completed ? 'bg-indigo-600 border-indigo-600 text-white' : 'border-slate-300 bg-white'
+                                  }`}
+                                >
+                                  {task.completed ? '✓' : ''}
+                                </div>
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs font-black text-indigo-600 uppercase tracking-wider">{task.subject}</span>
+                                    <span className="text-[10px] font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded">
+                                      {task.type || 'Etüt'}
+                                    </span>
+                                  </div>
+                                  <h4 className={`text-sm font-bold mt-0.5 ${task.completed ? 'line-through text-slate-400' : 'text-slate-900'}`}>
+                                    {task.topic}
+                                  </h4>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-3 text-right">
+                                <div className="text-xs">
+                                  <span className="font-bold text-slate-800">{task.targetQuestions} Soru</span>
+                                  <span className="block text-[10px] text-slate-400">{task.duration} Dk</span>
+                                </div>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setTasks(tasks.filter((t) => t.id !== task.id));
+                                  }}
+                                  className="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg text-xs"
+                                  title="Görevi Sil"
+                                >
+                                  🗑️
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* ALT SEÇENEK B: HAZIR BRANŞ DERS PROGRAMLARI */}
+                {scheduleSubTab === 'curricula' && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {READY_CURRICULA.map((curriculum) => (
+                      <div
+                        key={curriculum.id}
+                        className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 flex flex-col justify-between hover:border-indigo-400 transition"
+                      >
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="bg-indigo-50 text-indigo-700 text-xs px-3 py-1 rounded-full font-black uppercase">
+                              {curriculum.field}
+                            </span>
+                            <span className="text-xs font-bold text-slate-500">{curriculum.badge}</span>
+                          </div>
+
+                          <h3 className="text-lg font-black text-slate-900">{curriculum.title}</h3>
+                          <p className="text-xs text-slate-600 leading-relaxed">{curriculum.description}</p>
+
+                          <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 space-y-1.5 text-xs text-slate-700">
+                            <div className="flex justify-between font-semibold">
+                              <span>Haftalık Çalışma:</span>
+                              <strong>{curriculum.weeklyHours} Saat</strong>
+                            </div>
+                            <div className="flex justify-between font-semibold">
+                              <span>Hedef Soru Sayısı:</span>
+                              <strong>{curriculum.weeklyQuestions} Soru</strong>
+                            </div>
+                            <div className="flex justify-between font-semibold">
+                              <span>Toplam Görev Sayısı:</span>
+                              <strong>{curriculum.tasks.length} Görev / Hafta</strong>
+                            </div>
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => setShowApplyCurriculumModal(curriculum)}
+                          className="mt-6 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-2xl text-xs transition shadow-md shadow-indigo-600/20"
+                        >
+                          Bu Programı Haftalık Planıma Yükle
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* SEKMELER 3: MEB VE OGM RESMİ KAYNAKLARI */}
+            {currentTab === 'meb' && (
+              <div className="space-y-6">
+                {/* Üst Başlık & Arama */}
+                <div className="bg-white rounded-3xl p-6 lg:p-8 shadow-sm border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
+                      🏛️ MEB, OGM & ÖSYM Resmi Kaynak Havuzu
+                    </h2>
+                    <p className="text-xs text-slate-500">Milli Eğitim Bakanlığı resmi soru havuzları, deneme sınavları ve PDF dokümanları</p>
+                  </div>
+
+                  {/* Arama Kutusu */}
+                  <div className="flex items-center gap-2 w-full md:w-80">
+                    <input
+                      type="text"
+                      placeholder="Kaynak, konu veya portal ara..."
+                      value={resourceSearch}
+                      onChange={(e) => setResourceSearch(e.target.value)}
+                      className="w-full text-xs font-semibold p-3 rounded-xl border border-slate-300 focus:border-indigo-600 outline-none bg-slate-50"
+                    />
+                  </div>
+                </div>
+
+                {/* Kategori Filtre Butonları */}
+                <div className="flex items-center gap-2 overflow-x-auto pb-2">
+                  {['Tümü', 'MEB & OGM Materyal', 'ÖSYM Resmi Arşivi', 'Ders Notu & Kamp', 'Rehberlik & Takip'].map((cat) => (
+                    <button
+                      key={cat}
+                      onClick={() => setResourceCategoryFilter(cat)}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition ${
+                        resourceCategoryFilter === cat
+                          ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
+                          : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Kaynaklar Kart Izgarası */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredResources.map((res) => (
+                    <div
+                      key={res.id}
+                      className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 flex flex-col justify-between hover:border-indigo-400 transition"
+                    >
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-2xl">{res.icon || '📄'}</span>
+                          <span
+                            className={`text-[10px] font-black px-2.5 py-1 rounded-full uppercase ${
+                              res.isOfficialMeb
+                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                : 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                            }`}
+                          >
+                            {res.fileSizeOrType}
+                          </span>
+                        </div>
+
+                        <h3 className="text-base font-black text-slate-900 leading-snug">{res.title}</h3>
+                        <p className="text-xs text-slate-600 leading-relaxed">{res.description}</p>
+
+                        <div className="pt-2 flex items-center justify-between text-[11px] text-slate-500 font-medium">
+                          <span>👤 {res.author}</span>
+                          <span>⬇️ {res.downloads.toLocaleString('tr-TR')} İndirme</span>
+                        </div>
+                      </div>
+
+                      <div className="mt-6 pt-4 border-t border-slate-100 flex items-center gap-2">
+                        <a
+                          href={res.urlOrUri}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex-1 text-center bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md shadow-indigo-600/20"
+                        >
+                          Portali / Dokümanı Aç ↗
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* SEKMELER 4: DENEME NETLERİ */}
+            {currentTab === 'exams' && (
+              <div className="space-y-6">
+                <div className="bg-white rounded-3xl p-6 lg:p-8 shadow-sm border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
+                      📈 Deneme Net Takibi ve Analiz
+                    </h2>
+                    <p className="text-xs text-slate-500">Tüm TYT ve AYT deneme sınavı sonuçlarınızı kaydedin ve gelişiminizi izleyin</p>
+                  </div>
+
+                  <button
+                    onClick={() => setShowAddExamModal(true)}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-md shadow-emerald-600/20 flex items-center gap-1.5"
+                  >
+                    <span>+</span>
+                    <span>Yeni Deneme Ekle</span>
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {exams.map((item) => (
+                    <div key={item.id} className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="text-base font-black text-slate-900">{item.title}</h4>
+                          <span className="text-xs text-slate-400 font-medium">Tarih: {item.date}</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-2xl font-black text-emerald-600">{item.totalNet.toFixed(2)}</span>
+                          <span className="text-[10px] block font-bold text-slate-400">TOPLAM NET</span>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-4 gap-2 pt-2 text-center text-xs">
+                        <div className="p-2 bg-slate-50 rounded-xl border border-slate-100">
+                          <span className="block text-slate-500 text-[10px]">Türkçe</span>
+                          <strong className="text-slate-800">{item.turkce}</strong>
+                        </div>
+                        <div className="p-2 bg-slate-50 rounded-xl border border-slate-100">
+                          <span className="block text-slate-500 text-[10px]">Matematik</span>
+                          <strong className="text-slate-800">{item.matematik}</strong>
+                        </div>
+                        <div className="p-2 bg-slate-50 rounded-xl border border-slate-100">
+                          <span className="block text-slate-500 text-[10px]">Fen Bilimleri</span>
+                          <strong className="text-slate-800">{item.fen}</strong>
+                        </div>
+                        <div className="p-2 bg-slate-50 rounded-xl border border-slate-100">
+                          <span className="block text-slate-500 text-[10px]">Sosyal Bilimler</span>
+                          <strong className="text-slate-800">{item.sosyal}</strong>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </main>
+
+          {/* ==================== MODALLAR ==================== */}
+
+          {/* MODAL 1: PROGRAMI YÜKLE ONAY MODALI */}
+          {showApplyCurriculumModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+              <div className="bg-white rounded-3xl max-w-md w-full p-6 lg:p-8 shadow-2xl border border-slate-100 relative">
+                <button
+                  onClick={() => setShowApplyCurriculumModal(null)}
+                  className="absolute top-5 right-5 text-slate-400 hover:text-slate-600 text-lg font-bold"
+                >
+                  ✕
+                </button>
+
+                <h3 className="text-lg font-black text-slate-900">Bu Programı Yüklemek İstiyor musunuz?</h3>
+                <p className="text-xs text-indigo-600 font-bold mt-1">{showApplyCurriculumModal.title}</p>
+                <p className="text-xs text-slate-600 mt-2">
+                  Bu işlem, mevcut haftalık planınızı <strong>{showApplyCurriculumModal.field}</strong> odaklı hazır kamp programı ile güncelleyecektir.
+                </p>
+
+                <div className="mt-6 flex gap-3">
+                  <button
+                    onClick={() => setShowApplyCurriculumModal(null)}
+                    className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs transition"
+                  >
+                    Vazgeç
+                  </button>
+                  <button
+                    onClick={() => handleApplyCurriculum(showApplyCurriculumModal)}
+                    className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md shadow-indigo-600/20"
+                  >
+                    Evet, Yükle
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* MODAL 2: YENİ GÖREV EKLE */}
+          {showAddTaskModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+              <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 relative">
+                <button
+                  onClick={() => setShowAddTaskModal(false)}
+                  className="absolute top-5 right-5 text-slate-400 hover:text-slate-600 text-lg font-bold"
+                >
+                  ✕
+                </button>
+                <h3 className="text-base font-black text-slate-900">
+                  {daysOfWeek.find((d) => d.num === selectedDay)?.label} Gününe Görev Ekle
+                </h3>
+
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    const form = e.target;
+                    const subject = form.subject.value;
+                    const topic = form.topic.value;
+                    const targetQuestions = parseInt(form.targetQuestions.value, 10) || 30;
+                    const duration = parseInt(form.duration.value, 10) || 45;
+
+                    setTasks([
+                      ...tasks,
+                      {
+                        id: `task_${Date.now()}`,
+                        day: selectedDay,
+                        subject,
+                        topic,
+                        targetQuestions,
+                        duration,
+                        completed: false,
+                        type: 'Etüt'
+                      }
+                    ]);
+                    setShowAddTaskModal(false);
+                  }}
+                  className="mt-4 space-y-3"
+                >
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Ders Adı</label>
+                    <input
+                      name="subject"
+                      type="text"
+                      placeholder="Örn: Matematik, Türkçe, Fizik"
+                      className="w-full text-xs font-semibold p-3 rounded-xl border border-slate-300 outline-none"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Konu / Görev Detayı</label>
+                    <input
+                      name="topic"
+                      type="text"
+                      placeholder="Örn: Paragrafta Anlam & 2 Deneme"
+                      className="w-full text-xs font-semibold p-3 rounded-xl border border-slate-300 outline-none"
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">Hedef Soru</label>
+                      <input
+                        name="targetQuestions"
+                        type="number"
+                        defaultValue={35}
+                        className="w-full p-2.5 text-xs rounded-xl border border-slate-300 outline-none"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">Süre (Dk)</label>
+                      <input
+                        name="duration"
+                        type="number"
+                        defaultValue={45}
+                        className="w-full p-2.5 text-xs rounded-xl border border-slate-300 outline-none"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs transition"
+                  >
+                    Görevi Kaydet
+                  </button>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* MODAL 3: GERÇEK ZAMANLI E-POSTA DOĞRULAMA */}
+          {isVerifyModalOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+              <div className="bg-white rounded-3xl max-w-md w-full p-6 lg:p-8 shadow-2xl border border-slate-100 relative">
+                <button
+                  onClick={() => setIsVerifyModalOpen(false)}
+                  className="absolute top-5 right-5 text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-100 text-lg font-bold"
+                >
+                  ✕
+                </button>
+
+                <div className="flex items-center space-x-3 pb-4">
+                  <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl font-black">
+                    🛡️
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-slate-900">E-Posta Doğrulama</h3>
+                    <p className="text-xs text-indigo-600 font-bold">256-Bit SSL Güvenli Doğrulama</p>
+                  </div>
+                </div>
+
+                <div className="mt-2 p-3 rounded-2xl bg-slate-50 border border-slate-100 text-xs text-slate-600 space-y-1">
+                  <div className="flex justify-between font-bold text-slate-800">
+                    <span>{userEmail}</span>
+                    <span className="text-slate-400 font-medium">{refId}</span>
+                  </div>
+                  <p>Tek kullanımlık 6 haneli güvenlik kodu e-posta kutunuza iletilmiştir.</p>
+                </div>
+
+                {/* 3 Dakika Sayacı */}
+                <div
+                  className={`mt-4 p-3 rounded-2xl border transition ${
+                    isCodeExpired ? 'bg-rose-50 border-rose-200 text-rose-800' : 'bg-indigo-50/70 border-indigo-200 text-indigo-900'
+                  }`}
+                >
+                  <div className="flex items-center justify-between text-xs font-bold">
+                    <span>{isCodeExpired ? '⚠️ Kodun Süresi Doldu!' : '⏳ Kod Geçerlilik Süresi:'}</span>
+                    <span className="text-sm font-black">
+                      {isCodeExpired
+                        ? '00:00'
+                        : `${String(Math.floor(validitySecondsLeft / 60)).padStart(2, '0')}:${String(validitySecondsLeft % 60).padStart(2, '0')}`}
+                    </span>
+                  </div>
+                  <div className="w-full h-1.5 bg-slate-200 rounded-full mt-2 overflow-hidden">
+                    <div
+                      className={`h-full transition-all duration-1000 ${validitySecondsLeft < 30 ? 'bg-rose-500' : 'bg-indigo-600'}`}
+                      style={{ width: `${(validitySecondsLeft / 180) * 100}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* 6 Haneli OTP Kutuları */}
+                <div className="mt-5 space-y-2">
+                  <label className="block text-xs font-bold text-slate-600 text-center">6 Haneli Doğrulama Kodunu Giriniz</label>
+                  <div className="flex justify-center gap-2">
+                    {otpDigits.map((digit, index) => (
+                      <input
+                        key={index}
+                        id={`web-otp-${index}`}
+                        type="text"
+                        maxLength={1}
+                        value={digit}
+                        onChange={(e) => handleOtpChange(index, e.target.value)}
+                        onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                        disabled={isCodeExpired || attemptsLeft <= 0 || isVerifying}
+                        className="w-11 h-13 text-center text-xl font-black rounded-xl border border-slate-300 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 outline-none bg-slate-50 transition"
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Hata Bildirimi */}
+                <div className="mt-3 text-center">
+                  <span className="text-[11px] font-semibold text-slate-500">
+                    Kalan Deneme Hakkı: <strong className={attemptsLeft <= 2 ? 'text-rose-600' : 'text-slate-800'}>{attemptsLeft} / 5</strong>
+                  </span>
+
+                  {verifyError && (
+                    <div className="mt-2 p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-xs font-semibold text-rose-700">
+                      {verifyError}
+                    </div>
+                  )}
+                </div>
+
+                {/* Onay Butonu */}
+                <button
+                  onClick={handleVerifySubmit}
+                  disabled={isVerifying || isCodeExpired || attemptsLeft <= 0 || otpDigits.join('').length < 6}
+                  className="mt-5 w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white font-bold py-3 rounded-2xl transition shadow-lg shadow-indigo-600/20 text-sm"
+                >
+                  {isVerifying ? 'Kontrol Ediliyor...' : 'Doğrulamayı Tamamla'}
+                </button>
+
+                {/* Alt Aksiyonlar */}
+                <div className="mt-4 flex items-center justify-between text-xs">
+                  <a href="mailto:" target="_blank" className="text-indigo-600 hover:underline font-semibold">
+                    📬 Posta Kutusunu Aç
+                  </a>
+
+                  {resendSecondsLeft > 0 ? (
+                    <span className="text-slate-400 font-medium">Yeni Kod ({resendSecondsLeft}s)</span>
+                  ) : (
+                    <button onClick={handleSendVerificationCode} className="text-indigo-600 font-bold hover:underline">
+                      Yeni Kod Gönder
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* MODAL 4: STRATEJİK SINAV TAKVİMİ */}
+          {showMilestonesModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+              <div className="bg-white rounded-3xl max-w-lg w-full p-6 lg:p-8 shadow-2xl border border-slate-100 relative max-h-[90vh] overflow-y-auto">
+                <button
+                  onClick={() => setShowMilestonesModal(false)}
+                  className="absolute top-5 right-5 text-slate-400 hover:text-slate-600 text-lg font-bold"
+                >
+                  ✕
+                </button>
+
+                <h3 className="text-lg font-black text-slate-900">{EXAM_DATA[selectedExam].code} Stratejik Sınav Takvimi</h3>
+                <p className="text-xs text-indigo-600 font-bold">{EXAM_DATA[selectedExam].displayName}</p>
+
+                <div className="mt-6 space-y-4">
+                  {EXAM_DATA[selectedExam].milestones.map((m, i) => (
+                    <div key={i} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-start space-x-3.5">
+                      <div className="w-7 h-7 rounded-full bg-indigo-600 text-white font-black text-xs flex items-center justify-center shrink-0">
+                        {i + 1}
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-sm font-bold text-slate-900">{m.title}</h4>
+                          <span className="text-[10px] font-bold bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded">
+                            {m.dateRange}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-600">{m.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => setShowMilestonesModal(false)}
+                  className="mt-6 w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-2xl text-xs transition"
+                >
+                  Kapat
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* MODAL 5: GÜNÜN MOTİVASYONUNU DÜZENLE */}
+          {showEditMotivationModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+              <div className="bg-white rounded-3xl max-w-lg w-full p-6 lg:p-8 shadow-2xl border border-slate-100 relative">
+                <button
+                  onClick={() => setShowEditMotivationModal(false)}
+                  className="absolute top-5 right-5 text-slate-400 hover:text-slate-600 text-lg font-bold"
+                >
+                  ✕
+                </button>
+
+                <h3 className="text-lg font-black text-slate-900">Günün Motivasyon Yazısını Belirle</h3>
+                <p className="text-xs text-slate-500 font-medium">Öğrencilerin ana ekranında gösterilecek rehberlik mesajı</p>
+
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    setShowEditMotivationModal(false);
+                  }}
+                  className="mt-5 space-y-4"
+                >
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Başlık / Slogan</label>
+                    <input
+                      type="text"
+                      value={motivation.title}
+                      onChange={(e) => setMotivation({ ...motivation, title: e.target.value, isAI: false })}
+                      className="w-full text-sm font-semibold p-3 rounded-xl border border-slate-300 focus:border-indigo-600 outline-none"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Rehberlik & Güdüleme Metni</label>
+                    <textarea
+                      rows={4}
+                      value={motivation.content}
+                      onChange={(e) => setMotivation({ ...motivation, content: e.target.value, isAI: false })}
+                      className="w-full text-sm p-3 rounded-xl border border-slate-300 focus:border-indigo-600 outline-none"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Koç İsmi</label>
+                    <input
+                      type="text"
+                      value={motivation.authorName}
+                      onChange={(e) => setMotivation({ ...motivation, authorName: e.target.value })}
+                      className="w-full text-sm p-3 rounded-xl border border-slate-300 focus:border-indigo-600 outline-none"
+                      required
+                    />
+                  </div>
+
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={handleGenerateAIMotivation}
+                      className="flex-1 bg-purple-50 text-purple-700 hover:bg-purple-100 font-bold py-2.5 rounded-xl text-xs transition"
+                    >
+                      ✨ AI'dan Söz İste
+                    </button>
+                    <button
+                      type="submit"
+                      className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md shadow-indigo-600/20"
+                    >
+                      Yayınla & Kaydet
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* MODAL 6: YENİ DENEME EKLE */}
+          {showAddExamModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+              <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 relative">
+                <button onClick={() => setShowAddExamModal(false)} className="absolute top-5 right-5 text-slate-400 hover:text-slate-600 text-lg font-bold">
+                  ✕
+                </button>
+                <h3 className="text-base font-black text-slate-900">Yeni Deneme Neti Ekle</h3>
+
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    const form = e.target;
+                    const title = form.examTitle.value;
+                    const turkce = parseFloat(form.turkce.value) || 0;
+                    const matematik = parseFloat(form.matematik.value) || 0;
+                    const fen = parseFloat(form.fen.value) || 0;
+                    const sosyal = parseFloat(form.sosyal.value) || 0;
+                    const totalNet = turkce + matematik + fen + sosyal;
+
+                    setExams([{
+                      id: Date.now().toString(),
+                      title,
+                      date: new Date().toISOString().split('T')[0],
+                      turkce,
+                      matematik,
+                      fen,
+                      sosyal,
+                      totalNet
+                    }, ...exams]);
+
+                    setShowAddExamModal(false);
+                  }}
+                  className="mt-4 space-y-3"
+                >
+                  <input
+                    name="examTitle"
+                    type="text"
+                    placeholder="Deneme Adı (Örn: 3D TYT Simülasyon)"
+                    className="w-full text-xs font-semibold p-3 rounded-xl border border-slate-300 outline-none"
+                    required
+                  />
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <input name="turkce" type="number" step="0.25" placeholder="Türkçe Net" className="p-2.5 text-xs rounded-xl border border-slate-300 outline-none" required />
+                    <input name="matematik" type="number" step="0.25" placeholder="Matematik Net" className="p-2.5 text-xs rounded-xl border border-slate-300 outline-none" required />
+                    <input name="fen" type="number" step="0.25" placeholder="Fen Net" className="p-2.5 text-xs rounded-xl border border-slate-300 outline-none" required />
+                    <input name="sosyal" type="number" step="0.25" placeholder="Sosyal Net" className="p-2.5 text-xs rounded-xl border border-slate-300 outline-none" required />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full mt-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs transition"
+                  >
+                    Kaydet ve Listeye Ekle
+                  </button>
+                </form>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // Uygulamayı DOM'a Bağla
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>

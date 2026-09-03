@@ -1,0 +1,7 @@
+{
+  "name": "EduRehber",
+  "description": "Öğretmen ve öğrenciler için modern koçluk, haftalık ders planı, deneme takibi ve e-posta doğrulamalı eğitim platformu.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
